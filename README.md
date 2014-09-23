@@ -1,7 +1,7 @@
 custom-rating-bar
 =================
 
-A custom rating bar that will resize all the starts to the current view.
+A custom rating bar that will resize all the stars to the current view.
 
 Attributes:
 
