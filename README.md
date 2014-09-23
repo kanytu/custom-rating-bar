@@ -4,7 +4,7 @@ custom-rating-bar
 A custom rating bar that will resize all the starts to the current view.
 
 Attributes:
-`
+
         app:maxStars - number of stars   
 
         app:starOff  - drawable for off star
@@ -18,7 +18,7 @@ Attributes:
         app:stars    - current star value
         
         app:onlyForDisplay - sets the touch events off(true) or on(false)
-        `
+        
         
         
         
