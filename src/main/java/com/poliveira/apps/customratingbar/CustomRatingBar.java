@@ -153,9 +153,9 @@ public class CustomRatingBar extends LinearLayout {
      * @return
      */
     private float getScoreForPosition(float x) {
-        //return (float) Math.round(((x / ((float) getWidth() / (mMaxStars * 3f))) / 3f) * 2f) / 2;
-        float value = (float) Math.round((x / ((float) getWidth() / (mMaxStars))));
-        return value <= 0 ? 1 : value;
+        return (float) Math.round(((x / ((float) getWidth() / (mMaxStars * 3f))) / 3f) * 2f) / 2;
+        /*float value = (float) Math.round((x / ((float) getWidth() / (mMaxStars))));
+        return value <= 0 ? 1 : value;*/
     }
 
     private int getImageForScore(float score) {
