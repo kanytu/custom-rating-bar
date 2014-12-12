@@ -18,7 +18,8 @@ Attributes:
         app:stars    - current star value
         
         app:onlyForDisplay - sets the touch events off(true) or on(false)
-        
+
+		app:halfStars - sets the granularity of the rating bar between 0.5 and 1 (true and false)       
         
         
         

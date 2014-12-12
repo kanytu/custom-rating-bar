@@ -1,12 +1,17 @@
-package com.poliveira.apps.customratingbar;
+package com.poliveira.apps;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+
 
 /**
  * Created by poliveira on 07/08/2014.
@@ -28,17 +33,18 @@ public class CustomRatingBar extends LinearLayout {
         void scoreChanged(float score);
     }
 
-    private int mMaxStars;
-    private float mCurrentScore;
-    private int mStarOnResource;
-    private int mStarOffResource;
-    private int mStarHalfResource;
+    private int mMaxStars = 5;
+    private float mCurrentScore = 2.5f;
+    private int mStarOnResource = R.drawable.star_on;
+    private int mStarOffResource = R.drawable.star_off;
+    private int mStarHalfResource = R.drawable.star_half;
     private ImageView[] mStarsViews;
     private float mStarPadding;
     private IRatingBarCallbacks onScoreChanged;
     private int mLastStarId;
     private boolean mOnlyForDisplay;
     private double mLastX;
+    private boolean mHalfStars = true;
 
     public CustomRatingBar(Context context) {
         super(context);
@@ -51,6 +57,8 @@ public class CustomRatingBar extends LinearLayout {
 
     public void setScore(float score) {
         score = Math.round(score * 2) / 2.0f;
+        if (!mHalfStars)
+            score = Math.round(score);
         mCurrentScore = score;
         refreshStars();
     }
@@ -61,73 +69,40 @@ public class CustomRatingBar extends LinearLayout {
 
     public CustomRatingBar(Context context, AttributeSet attrs) {
         super(context, attrs);
-        TypedArray a = context.obtainStyledAttributes(attrs,
-                R.styleable.CustomRatingBar);
-
-        final int N = a.getIndexCount();
-        for (int i = 0; i < N; ++i) {
-            int attr = a.getIndex(i);
-            switch (attr) {
-                case R.styleable.CustomRatingBar_maxStars:
-                    mMaxStars = a.getInt(attr, 5);
-                    break;
-                case R.styleable.CustomRatingBar_stars:
-                    mCurrentScore = a.getFloat(attr, 2.5f);
-                    break;
-                case R.styleable.CustomRatingBar_starHalf:
-                    mStarHalfResource = a.getResourceId(attr, android.R.drawable.star_on);
-                    break;
-                case R.styleable.CustomRatingBar_starOn:
-                    mStarOnResource = a.getResourceId(attr, android.R.drawable.star_on);
-                    break;
-                case R.styleable.CustomRatingBar_starOff:
-                    mStarOffResource = a.getResourceId(attr, android.R.drawable.star_off);
-                    break;
-                case R.styleable.CustomRatingBar_starPadding:
-                    mStarPadding = a.getDimension(attr, 0);
-                    break;
-                case R.styleable.CustomRatingBar_onlyForDisplay:
-                    mOnlyForDisplay = a.getBoolean(attr, false);
-                    break;
-            }
-        }
-        a.recycle();
+        initializeAttributes(attrs, context);
         init();
     }
 
-    public CustomRatingBar(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
+    private void initializeAttributes(AttributeSet attrs, Context context) {
         TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.CustomRatingBar);
-
         final int N = a.getIndexCount();
         for (int i = 0; i < N; ++i) {
             int attr = a.getIndex(i);
-            switch (attr) {
-                case R.styleable.CustomRatingBar_maxStars:
-                    mMaxStars = a.getInt(attr, 5);
-                    break;
-                case R.styleable.CustomRatingBar_stars:
-                    mCurrentScore = a.getFloat(attr, 2.5f);
-                    break;
-                case R.styleable.CustomRatingBar_starHalf:
-                    mStarHalfResource = a.getResourceId(attr, android.R.drawable.star_on);
-                    break;
-                case R.styleable.CustomRatingBar_starOn:
-                    mStarOnResource = a.getResourceId(attr, android.R.drawable.star_on);
-                    break;
-                case R.styleable.CustomRatingBar_starOff:
-                    mStarOffResource = a.getResourceId(attr, android.R.drawable.star_off);
-                    break;
-                case R.styleable.CustomRatingBar_starPadding:
-                    mStarPadding = a.getDimension(attr, 0);
-                    break;
-                case R.styleable.CustomRatingBar_onlyForDisplay:
-                    mOnlyForDisplay = a.getBoolean(attr, false);
-                    break;
-            }
+            if (attr == R.styleable.CustomRatingBar_maxStars)
+                mMaxStars = a.getInt(attr, 5);
+            else if (attr == R.styleable.CustomRatingBar_stars)
+                mCurrentScore = a.getFloat(attr, 2.5f);
+            else if (attr == R.styleable.CustomRatingBar_starHalf)
+                mStarHalfResource = a.getResourceId(attr, android.R.drawable.star_on);
+            else if (attr == R.styleable.CustomRatingBar_starOn)
+                mStarOnResource = a.getResourceId(attr, android.R.drawable.star_on);
+            else if (attr == R.styleable.CustomRatingBar_starOff)
+                mStarOffResource = a.getResourceId(attr, android.R.drawable.star_off);
+            else if (attr == R.styleable.CustomRatingBar_starPadding)
+                mStarPadding = a.getDimension(attr, 0);
+            else if (attr == R.styleable.CustomRatingBar_onlyForDisplay)
+                mOnlyForDisplay = a.getBoolean(attr, false);
+            else if (attr == R.styleable.CustomRatingBar_halfStars)
+                mHalfStars = a.getBoolean(attr, true);
         }
         a.recycle();
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public CustomRatingBar(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        initializeAttributes(attrs, context);
         init();
     }
 
@@ -153,9 +128,10 @@ public class CustomRatingBar extends LinearLayout {
      * @return
      */
     private float getScoreForPosition(float x) {
-        return (float) Math.round(((x / ((float) getWidth() / (mMaxStars * 3f))) / 3f) * 2f) / 2;
-        /*float value = (float) Math.round((x / ((float) getWidth() / (mMaxStars))));
-        return value <= 0 ? 1 : value;*/
+        if (mHalfStars)
+            return (float) Math.round(((x / ((float) getWidth() / (mMaxStars * 3f))) / 3f) * 2f) / 2;
+        float value = (float) Math.round((x / ((float) getWidth() / (mMaxStars))));
+        return value <= 0 ? 1 : value;
     }
 
     private int getImageForScore(float score) {
@@ -165,7 +141,7 @@ public class CustomRatingBar extends LinearLayout {
     }
 
     private void refreshStars() {
-        boolean flagHalf = mCurrentScore != 0 && (mCurrentScore % 0.5 == 0);
+        boolean flagHalf = (mCurrentScore != 0 && (mCurrentScore % 0.5 == 0)) && mHalfStars;
         for (int i = 1; i <= mMaxStars; i++) {
 
             if (i <= mCurrentScore)
@@ -200,7 +176,7 @@ public class CustomRatingBar extends LinearLayout {
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
+    public boolean onTouchEvent(@NonNull MotionEvent event) {
         if (mOnlyForDisplay)
             return true;
         switch (event.getAction()) {
@@ -239,12 +215,19 @@ public class CustomRatingBar extends LinearLayout {
 
     private void animateStarPressed(ImageView star) {
         if (star != null)
-            star.animate().scaleX(1.2f).scaleY(1.2f).setDuration(100).start();
+            ViewCompat.animate(star).scaleX(1.2f).scaleY(1.2f).setDuration(100).start();
     }
 
     private void animateStarRelease(ImageView star) {
         if (star != null)
-            star.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
+            ViewCompat.animate(star).scaleX(1f).scaleY(1f).setDuration(100).start();
     }
 
+    public boolean isHalfStars() {
+        return mHalfStars;
+    }
+
+    public void setHalfStars(boolean halfStars) {
+        mHalfStars = halfStars;
+    }
 }
