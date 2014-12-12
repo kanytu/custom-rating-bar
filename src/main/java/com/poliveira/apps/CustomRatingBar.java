@@ -194,8 +194,8 @@ public class CustomRatingBar extends LinearLayout {
                 isClick = false;
                 break;
             case MotionEvent.ACTION_MOVE:
-                isClick = false;
                 if (Math.abs(event.getX() - mLastX) > 50) {
+                    isClick = false;
                     requestDisallowInterceptTouchEvent(true);
                     float lastscore = mCurrentScore;
                     mCurrentScore = getScoreForPosition(event.getX());
