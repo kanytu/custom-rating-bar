@@ -45,6 +45,7 @@ public class CustomRatingBar extends LinearLayout {
     private boolean mOnlyForDisplay;
     private double mLastX;
     private boolean mHalfStars = true;
+    private boolean isClick = false;
 
     public CustomRatingBar(Context context) {
         super(context);
@@ -183,32 +184,43 @@ public class CustomRatingBar extends LinearLayout {
             case MotionEvent.ACTION_UP:
                 animateStarRelease(getImageView(mLastStarId));
                 mLastStarId = -1;
-                break;
-            case MotionEvent.ACTION_MOVE:
-                if (Math.abs(event.getX() - mLastX) > 50)
-                    requestDisallowInterceptTouchEvent(true);
-                float lastscore = mCurrentScore;
-                mCurrentScore = getScoreForPosition(event.getX());
-                if (lastscore != mCurrentScore) {
-                    animateStarRelease(getImageView(mLastStarId));
-                    animateStarPressed(getImageView(getImageForScore(mCurrentScore)));
+                if (isClick) {
+                    mCurrentScore = getScoreForPosition(event.getX());
                     mLastStarId = getImageForScore(mCurrentScore);
                     refreshStars();
                     if (onScoreChanged != null)
                         onScoreChanged.scoreChanged(mCurrentScore);
                 }
+                isClick = false;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                isClick = false;
+                if (Math.abs(event.getX() - mLastX) > 50) {
+                    requestDisallowInterceptTouchEvent(true);
+                    float lastscore = mCurrentScore;
+                    mCurrentScore = getScoreForPosition(event.getX());
+                    if (lastscore != mCurrentScore) {
+                        animateStarRelease(getImageView(mLastStarId));
+                        animateStarPressed(getImageView(getImageForScore(mCurrentScore)));
+                        mLastStarId = getImageForScore(mCurrentScore);
+                        refreshStars();
+                        if (onScoreChanged != null)
+                            onScoreChanged.scoreChanged(mCurrentScore);
+                    }
+                }
                 break;
             case MotionEvent.ACTION_DOWN:
                 mLastX = event.getX();
-                lastscore = mCurrentScore;
-                mCurrentScore = getScoreForPosition(event.getX());
-                animateStarPressed(getImageView(getImageForScore(mCurrentScore)));
-                mLastStarId = getImageForScore(mCurrentScore);
-                if (lastscore != mCurrentScore) {
-                    refreshStars();
-                    if (onScoreChanged != null)
-                        onScoreChanged.scoreChanged(mCurrentScore);
-                }
+                isClick = true;
+//                lastscore = mCurrentScore;
+//                mCurrentScore = getScoreForPosition(event.getX());
+//                animateStarPressed(getImageView(getImageForScore(mCurrentScore)));
+//                mLastStarId = getImageForScore(mCurrentScore);
+//                if (lastscore != mCurrentScore) {
+//                    refreshStars();
+//                    if (onScoreChanged != null)
+//                        onScoreChanged.scoreChanged(mCurrentScore);
+//                }
         }
         return true;
     }
